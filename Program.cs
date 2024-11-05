@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GeoConsole {
@@ -6,11 +7,14 @@ namespace GeoConsole {
         public static void PrintOptions() {
             Console.ResetColor();
             Console.WriteLine("Options: ");
-            Console.WriteLine("0 - generate operations");
-            Console.WriteLine("1 - insert (node count)");
-            Console.WriteLine("2 - find (node count)");
-            Console.WriteLine("3 - delete (node count)");
-            Console.WriteLine("4 - print tree");
+            Console.WriteLine("1 - generate operations");
+            Console.WriteLine("2 - insert (node count)");
+            Console.WriteLine("3 - find (node count)");
+            Console.WriteLine("4 - delete (node count)");
+            Console.WriteLine("5 - insert (node parameters)");
+            Console.WriteLine("6 - find (node parameters)");
+            Console.WriteLine("7 - delete (node parameters)");
+            Console.WriteLine("8 - print tree");
             Console.WriteLine("9 - end");
             Console.WriteLine();
             Console.Write("Your choice: ");
@@ -19,9 +23,19 @@ namespace GeoConsole {
         static void Main(string[] args) {
             Generator generator = new Generator();
 
-            int option = -1, type = -1, count = 0;
+            int option = -1, type = -1, count = 0, number = 0, index = -1;
+            string description = "";
+            double x = 0f, y = 0f;
 
             while (option != 9) {
+                option = -1;
+                type = -1;
+                count = 0;
+                number = 0;
+                description = "";
+                x = 0f;
+                y = 0f;
+
                 PrintOptions();
 
                 int.TryParse(Console.ReadLine(), out option);
@@ -29,7 +43,7 @@ namespace GeoConsole {
                 Console.Clear();
 
                 switch (option) {
-                    case 0:
+                    case 1:
                         Console.Write("Enter operations count to execute: ");
                         int.TryParse(Console.ReadLine(), out count);
                         Console.WriteLine();
@@ -37,9 +51,7 @@ namespace GeoConsole {
                         Task.Run(async () => await generator.GenerateOperations(2, count)).Wait();
                         break;
 
-                    case 1:
-                        type = -1;
-
+                    case 2:
                         while (type != 0 && type != 1 && type != 2) {
                             Console.Clear();
                             Console.WriteLine("Choose tree type:");
@@ -55,9 +67,7 @@ namespace GeoConsole {
                         Task.Run(async () => await generator.Insert(type, count)).Wait();
                         break;
 
-                    case 2:
-                        type = -1;
-
+                    case 3:
                         while (type != 0 && type != 1 && type != 2) {
                             Console.Clear();
                             Console.WriteLine("Choose tree type:");
@@ -73,9 +83,7 @@ namespace GeoConsole {
                         Task.Run(async () => await generator.Find(type, count)).Wait();
                         break;
 
-                    case 3:
-                        type = -1;
-
+                    case 4:
                         while (type != 0 && type != 1 && type != 2) {
                             Console.Clear();
                             Console.WriteLine("Choose tree type:");
@@ -91,9 +99,84 @@ namespace GeoConsole {
                         Task.Run(async () => await generator.Delete(type, count)).Wait();
                         break;
 
-                    case 4:
-                        type = -1;
+                    case 5:
+                        while (type != 0 && type != 1) {
+                            Console.Clear();
+                            Console.WriteLine("Choose item type:");
+                            Console.WriteLine("[0] - parcela  [1] - nehnutelnost");
+                            int.TryParse(Console.ReadLine(), out type);
+                            Console.WriteLine();
+                        }
 
+                        Console.WriteLine("Enter number:");
+                        int.TryParse(Console.ReadLine(), out number);
+                        Console.WriteLine("Enter description:");
+                        description = Console.ReadLine();
+                        Console.WriteLine("Enter position X:");
+                        double.TryParse(Console.ReadLine(), out x);
+                        Console.WriteLine("Enter position Y:");
+                        double.TryParse(Console.ReadLine(), out y);
+                        Console.WriteLine();
+
+                        GPS gps = new GPS(x, y);
+                        Item item;
+
+                        if (type == 0) {
+                            item = new Parcela(number, description, gps) as Item;
+                            generator.InsertItem(type, ref item);
+                        } else if (type == 1) {
+                            item = new Nehnutelnost(number, description, gps) as Item;
+                            generator.InsertItem(type, ref item);
+                        }
+                        break;
+
+                    case 6:
+                        while (type != 0 && type != 1 && type != 2) {
+                            Console.Clear();
+                            Console.WriteLine("Choose item type:");
+                            Console.WriteLine("[0] - parcela  [1] - nehnutelnost [2] - both");
+                            int.TryParse(Console.ReadLine(), out type);
+                            Console.WriteLine();
+                        }
+
+                        Console.WriteLine("Enter position X:");
+                        double.TryParse(Console.ReadLine(), out x);
+                        Console.WriteLine("Enter position Y:");
+                        double.TryParse(Console.ReadLine(), out y);
+                        Console.WriteLine();
+
+                        _ = generator.FindItem(type, new GPS(x, y));
+                        break;
+
+                    case 7:
+                        while (type != 0 && type != 1 && type != 2) {
+                            Console.Clear();
+                            Console.WriteLine("Choose item type:");
+                            Console.WriteLine("[0] - parcela  [1] - nehnutelnost [2] - both");
+                            int.TryParse(Console.ReadLine(), out type);
+                            Console.WriteLine();
+                        }
+
+                        Console.WriteLine("Enter position X:");
+                        double.TryParse(Console.ReadLine(), out x);
+                        Console.WriteLine("Enter position Y:");
+                        double.TryParse(Console.ReadLine(), out y);
+                        Console.WriteLine();
+
+                        List<Item> result = generator.FindItem(type, new GPS(x, y));
+
+                        Console.WriteLine("Enter index:");
+                        int.TryParse(Console.ReadLine(), out index);
+                        Console.WriteLine();
+
+                        var itemToDelete = result[index];
+
+                        if (index >= 0 && index < result.Count) return;
+
+                        generator.DeleteItem(type, ref itemToDelete);
+                        break;
+
+                    case 8:
                         while (type != 0 && type != 1 && type != 2) {
                             Console.Clear();
                             Console.WriteLine("Choose tree type:");

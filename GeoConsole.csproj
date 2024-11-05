@@ -44,14 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generator.cs" />
-    <Compile Include="GPS.cs" />
-    <Compile Include="IKey.cs" />
-    <Compile Include="Item.cs" />
-    <Compile Include="KDTree.cs" />
-    <Compile Include="Nehnutelnost.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="Parcela.cs" />
+    <Compile Include="Classes\Generator.cs" />
+    <Compile Include="Classes\GPS.cs" />
+    <Compile Include="Classes\IKey.cs" />
+    <Compile Include="Classes\Item.cs" />
+    <Compile Include="Classes\KDTree.cs" />
+    <Compile Include="Classes\Nehnutelnost.cs" />
+    <Compile Include="Classes\Node.cs" />
+    <Compile Include="Classes\Parcela.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

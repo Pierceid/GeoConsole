@@ -6,11 +6,13 @@ namespace GeoConsole {
         private Node<T, U> root;
         private int treeSize;
         private int dataSize;
+        private int dimensions;
 
-        public KDTree() {
+        public KDTree(int dimensions) {
             this.root = null;
             this.treeSize = 0;
             this.dataSize = 0;
+            this.dimensions = dimensions;
         }
 
         public void InsertNode(ref T data, U keys) {
@@ -54,7 +56,7 @@ namespace GeoConsole {
             }
 
             nodeToInsert.Parent = parent;
-            nodeToInsert.Level = level;
+            nodeToInsert.Level = level % this.dimensions;
 
             this.treeSize++;
 
@@ -109,7 +111,7 @@ namespace GeoConsole {
 
             if (!keysChanged) {
                 // Case 1: Keys unchanged
-                Console.WriteLine("UpdateNode() >>> Data entry updated in-place!");
+                Console.WriteLine("UpdateNode() >>> Data entry updated!");
                 for (int i = 0; i < nodeToUpdate.NodeData.Count; i++) {
                     if (nodeToUpdate.NodeData[i].EqualsByID(oldData)) {
                         nodeToUpdate.NodeData[i] = newData;
@@ -119,12 +121,12 @@ namespace GeoConsole {
             } else {
                 // Case 2: Keys changed
                 if (multipleDataEntries) {
-                    Console.WriteLine("UpdateNode() >>> Data entry removed and reinserted with new keys.");
+                    Console.WriteLine("UpdateNode() >>> Data entry updated!");
                     nodeToUpdate.NodeData.Remove(oldData);
                     InsertNode(ref newData, newKeys);
                     this.dataSize--;
                 } else {
-                    Console.WriteLine("UpdateNode() >>> Node removed and reinserted with new keys.");
+                    Console.WriteLine("UpdateNode() >>> Node updated!");
                     DeleteNode(ref oldData, oldKeys);
                     InsertNode(ref newData, newKeys);
                 }
@@ -150,98 +152,82 @@ namespace GeoConsole {
                 return;
             }
 
-            DeleteAndReplaceNode(nodeToDelete);
-        }
-
-        public void DeleteNodeReverse(ref T data, U keys, Node<T, U> startNode) {
-            if (startNode == null) return;
-
-            Node<T, U> nodeToDelete = this.FindNodeReverse(keys, startNode);
-
-            if (nodeToDelete == null) return;
-
-            if (nodeToDelete.NodeData.Count > 1) {
-                this.dataSize--;
-                Console.WriteLine("DeleteNode() >>> Data entry removed!");
-                foreach (T nodeData in nodeToDelete.NodeData) {
-                    if (nodeData.EqualsByID(data)) {
-                        nodeToDelete.NodeData.Remove(data);
-                        break;
-                    }
-                }
-                return;
-            }
-
-            DeleteAndReplaceNode(nodeToDelete);
-        }
-
-        private void DeleteAndReplaceNode(Node<T, U> parent) {
-            if (parent == null) return;
-
             List<Node<T, U>> duplicateNodes = new List<Node<T, U>>();
+            Stack<Node<T, U>> nodesToReinsert = new Stack<Node<T, U>>();
             List<Node<T, U>> visitedNodes = new List<Node<T, U>>();
-            Stack<Node<T, U>> nodesToProcess = new Stack<Node<T, U>>();
+            nodesToReinsert.Push(nodeToDelete);
 
-            nodesToProcess.Push(parent);
+            while (nodesToReinsert.Count > 0) {
+                Node<T, U> current = nodesToReinsert.Pop();
 
-            while (nodesToProcess.Count > 0) {
-                Node<T, U> current = nodesToProcess.Pop();
+                Stack<Node<T, U>> nodesToReplace = new Stack<Node<T, U>>();
 
-                // If the current node is a leaf, remove it
-                if (current.LeftSon == null && current.RightSon == null) {
-                    if (current.Parent != null) {
-                        if (current.Parent.LeftSon == current) {
-                            current.Parent.LeftSon = null;
+                List<T> originalData = new List<T>();
+                U originalKeys = keys;
+
+                if (current != nodeToDelete) {
+                    originalData = current.NodeData;
+                    originalKeys = current.KeysData;
+                }
+
+                nodesToReplace.Push(current);
+                visitedNodes.Clear();
+
+                bool isLeaf = (current.LeftSon == null && current.RightSon == null);
+
+                if (!isLeaf) visitedNodes.Add(current);
+
+                while (nodesToReplace.Count > 0) {
+                    Node<T, U> cur = nodesToReplace.Pop();
+
+                    // If the current node is a leaf, remove it
+                    if (cur.LeftSon == null && cur.RightSon == null) {
+                        if (cur.Parent != null) {
+                            if (cur.Parent.LeftSon == cur) {
+                                cur.Parent.LeftSon = null;
+                            } else {
+                                cur.Parent.RightSon = null;
+                            }
+                            cur.Parent = null;
+                            Console.WriteLine("DeleteNode() >>> Leaf node removed!");
                         } else {
-                            current.Parent.RightSon = null;
+                            this.root = null;
+                            Console.WriteLine("DeleteNode() >>> Root node removed!");
                         }
-                        Console.WriteLine("DeleteAndReplaceNode() >>> Leaf node removed.");
-                    } else {
-                        this.root = null;
-                        Console.WriteLine("DeleteAndReplaceNode() >>> Root node removed.");
+                        this.treeSize--;
+                        this.dataSize--;
+                        continue;
                     }
-                    this.treeSize--;
-                    this.dataSize--;
-                    return;
+
+                    // Find replacement for the current node
+                    Node<T, U> replacement = null;
+
+                    if (cur.LeftSon != null) {
+                        replacement = FindMaxNode(cur);
+                    } else if (cur.RightSon != null) {
+                        replacement = FindMinNode(cur);
+                    }
+
+                    if (replacement != null) {
+                        cur.KeysData = replacement.KeysData;
+                        cur.NodeData = new List<T>(replacement.NodeData);
+
+                        nodesToReplace.Push(replacement);
+                        visitedNodes.Add(replacement);
+                    }
                 }
 
-                // Find replacement for the current node
-                Node<T, U> replacement = null;
+                if (visitedNodes.Count != 0) visitedNodes.RemoveAt(visitedNodes.Count - 1);
 
-                if (current.LeftSon != null) {
-                    replacement = FindMaxNode(current);
-                } else if (current.RightSon != null) {
-                    replacement = FindMinNode(current);
+                // Reinsert duplicates for each visited node
+                foreach (var visited in visitedNodes) {
+                    duplicateNodes = FindDuplicateNodes(visited);
+                    foreach (var duplicate in duplicateNodes) {
+                        nodesToReinsert.Push(duplicate);
+                    }
                 }
 
-                if (replacement != null) {
-                    current.KeysData = replacement.KeysData;
-                    current.NodeData = new List<T>(replacement.NodeData);
-
-                    nodesToProcess.Push(replacement);
-                    if (!visitedNodes.Contains(current)) visitedNodes.Add(current);
-                }
-            }
-
-            // Reinsert duplicates for each visited node
-            foreach (var visited in visitedNodes) {
-                duplicateNodes = FindDuplicateNodes(visited);
-                foreach (var duplicate in duplicateNodes) {
-                    nodesToProcess.Push(duplicate);
-                }
-            }
-
-            while (nodesToProcess.Count > 0) {
-                Node<T, U> duplicate = nodesToProcess.Pop();
-                List<T> duplicateNodeData = new List<T>(duplicate.NodeData);
-
-                foreach (var nodeData in duplicateNodeData) {
-                    T data = nodeData;
-                    DeleteNodeReverse(ref data, duplicate.KeysData, duplicate);
-                    InsertNode(ref data, duplicate.KeysData);
-                }
-
-                Console.WriteLine("DeleteAndReplaceNode() >>> Duplicate node reinserted.");
+                if (originalData.Count > 0) originalData.ForEach(x => InsertNode(ref x, originalKeys));
             }
         }
 
@@ -264,7 +250,7 @@ namespace GeoConsole {
                     if (current.LeftSon != null) nodesToVisit.Push(current.LeftSon);
                     if (current.RightSon != null) nodesToVisit.Push(current.RightSon);
                 } else {
-                    if (current.RightSon != null) nodesToVisit.Push(current.RightSon);
+                    if (current.LeftSon != null) nodesToVisit.Push(current.LeftSon);
                 }
             }
 

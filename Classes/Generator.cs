@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace GeoConsole {
     public class Generator {
-        private KDTree<Parcela, GPS> parcelaTree = new KDTree<Parcela, GPS>();
-        private KDTree<Nehnutelnost, GPS> nehnutelnostTree = new KDTree<Nehnutelnost, GPS>();
-        private KDTree<Item, GPS> itemTree = new KDTree<Item, GPS>();
+        private KDTree<Parcela, GPS> parcelaTree = new KDTree<Parcela, GPS>(2);
+        private KDTree<Nehnutelnost, GPS> nehnutelnostTree = new KDTree<Nehnutelnost, GPS>(2);
+        private KDTree<Item, GPS> itemTree = new KDTree<Item, GPS>(2);
 
         private Random random = new Random();
 
@@ -19,12 +19,12 @@ namespace GeoConsole {
             int cislo = random.Next();
             string popis = GenerateRandomString(10);
 
-            double x = Math.Round(random.NextDouble() * 100, 1);
-            double y = Math.Round(random.NextDouble() * 100, 1);
+            double x = Math.Round(random.NextDouble() * 10, 1);
+            double y = Math.Round(random.NextDouble() * 10, 1);
             GPS pozicia1 = new GPS(x, y);
 
-            x = Math.Round(random.NextDouble() * 100, 1);
-            y = Math.Round(random.NextDouble() * 100, 1);
+            x = Math.Round(random.NextDouble() * 10, 1);
+            y = Math.Round(random.NextDouble() * 10, 1);
             GPS pozicia2 = new GPS(x, y);
 
             Parcela parcela1, parcela2;
@@ -172,11 +172,15 @@ namespace GeoConsole {
         }
 
         public async Task GenerateOperations(int treeType, int operationCount) {
+            (int insert, int find, int delete) = (0, 0, 0);
+
             for (int i = 0; i < operationCount; i++) {
                 var operation = random.NextDouble();
 
                 if (operation < 0.5) {
                     await Task.Run(() => InsertToTree(treeType));
+
+                    insert++;
                 } else if (operation < 0.75) {
                     GPS gps = null;
 
@@ -193,6 +197,8 @@ namespace GeoConsole {
                     if (gps == null) continue;
 
                     await Task.Run(() => FindInTree(treeType, gps));
+
+                    find++;
                 } else {
                     if (ids.Count == 0) continue;
 
@@ -209,8 +215,16 @@ namespace GeoConsole {
                     string id = ids[random.Next(ids.Count)];
 
                     await Task.Run(() => DeleteFromTree(treeType, id));
+
+                    delete++;
                 }
             }
+
+            Console.WriteLine("-------------------");
+            Console.WriteLine($"Insert: {insert}");
+            Console.WriteLine($"Find: {find}");
+            Console.WriteLine($"Delete: {delete}");
+            Console.WriteLine("-------------------");
         }
 
         public async Task Insert(int treeType, int nodeCount) {
@@ -244,6 +258,93 @@ namespace GeoConsole {
                 string id = ids[random.Next(ids.Count)];
 
                 await Task.Run(() => DeleteFromTree(treeType, id));
+            }
+        }
+
+        public void InsertItem(int itemType, ref Item item) {
+            switch (itemType) {
+                case 0:
+                    if (item is Parcela p) {
+                        parcelaTree.InsertNode(ref p, p.Pozicia);
+                        itemTree.InsertNode(ref item, p.Pozicia);
+
+                        parcely.Add(p);
+                        ids.Add(item.Id);
+                    }
+                    break;
+
+                case 1:
+                    if (item is Nehnutelnost n) {
+                        nehnutelnostTree.InsertNode(ref n, n.Pozicia);
+                        itemTree.InsertNode(ref item, n.Pozicia);
+
+                        nehnutelnosti.Add(n);
+                        ids.Add(item.Id);
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid tree type");
+                    break;
+            }
+        }
+
+        public List<Item> FindItem(int itemType, GPS gps) {
+            List<Item> result = new List<Item>();
+
+            Console.WriteLine($"KEYS (GPS): [{gps.X};{gps.Y}]");
+            Console.WriteLine("-------------------------------------------------------");
+
+            int index = 0;
+
+            switch (itemType) {
+                case 0:
+                    parcelaTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
+                    break;
+
+                case 1:
+                    nehnutelnostTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
+                    break;
+
+                case 2:
+                    itemTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid item type");
+                    break;
+            }
+
+            Console.WriteLine("-------------------------------------------------------");
+
+            return result;
+        }
+
+        public void DeleteItem(int itemType, ref Item item) {
+            switch (itemType) {
+                case 0:
+                    if (item is Parcela p) {
+                        parcelaTree.DeleteNode(ref p, p.Pozicia);
+                        itemTree.DeleteNode(ref item, p.Pozicia);
+
+                        parcely.Remove(p);
+                        ids.Remove(item.Id);
+                    }
+                    break;
+
+                case 1:
+                    if (item is Nehnutelnost n) {
+                        nehnutelnostTree.DeleteNode(ref n, n.Pozicia);
+                        itemTree.DeleteNode(ref item, n.Pozicia);
+
+                        nehnutelnosti.Remove(n);
+                        ids.Remove(item.Id);
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid item type");
+                    break;
             }
         }
 

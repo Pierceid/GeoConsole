@@ -13,7 +13,7 @@ namespace GeoConsole {
         }
 
         public override void PrintInfo() {
-            Console.WriteLine($"Nehnutelnost: {this.Id} - {this.supCislo} - {this.popis} - [{this.pozicia.X}°, {this.pozicia.Y}°]");
+            Console.WriteLine($"Nehnutelnost: {this.Id} - {this.supCislo} - {this.popis} - [{this.pozicia.X}°; {this.pozicia.Y}°]");
         }
 
         public override string GetInfo() {
