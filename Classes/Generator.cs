@@ -19,12 +19,12 @@ namespace GeoConsole {
             int cislo = random.Next();
             string popis = GenerateRandomString(10);
 
-            double x = Math.Round(random.NextDouble() * 10, 1);
-            double y = Math.Round(random.NextDouble() * 10, 1);
+            double x = Math.Round(random.NextDouble() * 100, 1);
+            double y = Math.Round(random.NextDouble() * 100, 1);
             GPS pozicia1 = new GPS(x, y);
 
-            x = Math.Round(random.NextDouble() * 10, 1);
-            y = Math.Round(random.NextDouble() * 10, 1);
+            x = Math.Round(random.NextDouble() * 100, 1);
+            y = Math.Round(random.NextDouble() * 100, 1);
             GPS pozicia2 = new GPS(x, y);
 
             Parcela parcela1, parcela2;
