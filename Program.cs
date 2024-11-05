@@ -149,31 +149,40 @@ namespace GeoConsole {
                         break;
 
                     case 7:
-                        while (type != 0 && type != 1 && type != 2) {
+                        while (type != 0 && type != 1) {
                             Console.Clear();
                             Console.WriteLine("Choose item type:");
-                            Console.WriteLine("[0] - parcela  [1] - nehnutelnost [2] - both");
+                            Console.WriteLine("[0] - parcela  [1] - nehnutelnost");
                             int.TryParse(Console.ReadLine(), out type);
                             Console.WriteLine();
                         }
 
-                        Console.WriteLine("Enter position X:");
+                        Console.Write("Enter position X: ");
                         double.TryParse(Console.ReadLine(), out x);
-                        Console.WriteLine("Enter position Y:");
+                        Console.Write("Enter position Y: ");
                         double.TryParse(Console.ReadLine(), out y);
                         Console.WriteLine();
 
                         List<Item> result = generator.FindItem(type, new GPS(x, y));
 
+                        if (result.Count == 0) return;
+
                         Console.WriteLine("Enter index:");
                         int.TryParse(Console.ReadLine(), out index);
                         Console.WriteLine();
 
-                        var itemToDelete = result[index];
+                        if (index < 0 || index >= result.Count) return;
 
-                        if (index >= 0 && index < result.Count) return;
+                        Parcela parcela = null;
+                        Nehnutelnost nehnutelnost = null;
 
-                        generator.DeleteItem(type, ref itemToDelete);
+                        if (type == 0) {
+                            parcela = result[index] as Parcela;
+                        } else if (type == 1) {
+                            nehnutelnost = result[index] as Nehnutelnost;
+                        }
+
+                        generator.DeleteItem(type, parcela, nehnutelnost);
                         break;
 
                     case 8:

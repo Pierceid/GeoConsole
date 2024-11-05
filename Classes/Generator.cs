@@ -220,15 +220,15 @@ namespace GeoConsole {
                 }
             }
 
-            Console.WriteLine("-------------------");
+            Console.WriteLine("------------------");
             Console.WriteLine($"Insert: {insert}");
             Console.WriteLine($"Find: {find}");
             Console.WriteLine($"Delete: {delete}");
-            Console.WriteLine("-------------------");
+            Console.WriteLine("------------------");
         }
 
         public async Task Insert(int treeType, int nodeCount) {
-            for (int i = 0; i < nodeCount; i++) {
+            for (int i = 0; i < nodeCount / 2; i++) {
                 await Task.Run(() => InsertToTree(treeType));
             }
         }
@@ -292,59 +292,110 @@ namespace GeoConsole {
         public List<Item> FindItem(int itemType, GPS gps) {
             List<Item> result = new List<Item>();
 
-            Console.WriteLine($"KEYS (GPS): [{gps.X};{gps.Y}]");
-            Console.WriteLine("-------------------------------------------------------");
+            try {
+                Console.WriteLine($"KEYS (GPS): [{gps.X};{gps.Y}]");
+                Console.WriteLine("-------------------------------------------------------------------------------------------");
 
-            int index = 0;
+                int index = 0;
 
-            switch (itemType) {
-                case 0:
-                    parcelaTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
-                    break;
+                switch (itemType) {
+                    case 0:
+                        parcelaTree.FindNodes(gps).ForEach(x => { Console.Write(index++ + ". "); x.PrintInfo(); result.Add(x); });
+                        break;
 
-                case 1:
-                    nehnutelnostTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
-                    break;
+                    case 1:
+                        nehnutelnostTree.FindNodes(gps).ForEach(x => { Console.Write(index++ + ". "); x.PrintInfo(); result.Add(x); });
+                        break;
 
-                case 2:
-                    itemTree.FindNodes(gps).ForEach(x => { Console.Write(++index + ". "); x.PrintInfo(); result.Add(x); });
-                    break;
+                    case 2:
+                        itemTree.FindNodes(gps).ForEach(x => { Console.Write(index++ + ". "); x.PrintInfo(); result.Add(x); });
+                        break;
 
-                default:
-                    Console.WriteLine("Invalid item type");
-                    break;
+                    default:
+                        Console.WriteLine("Invalid item type");
+                        break;
+                }
+
+                Console.WriteLine("-------------------------------------------------------------------------------------------");
+                Console.WriteLine();
+
+                return result;
+            } catch (NullReferenceException) {
+                return result;
             }
-
-            Console.WriteLine("-------------------------------------------------------");
-
-            return result;
         }
 
+        public void DeleteItem(int itemType, Parcela parcela = null, Nehnutelnost nehnutelnost = null) {
+            try {
+                switch (itemType) {
+                    case 0:
+                        if (parcela != null) {
+                            Parcela par = parcely.Find(p => p.Id == parcela.Id);
+                            Item item = par as Item;
+
+                            parcelaTree.DeleteNode(ref parcela, parcela.Pozicia);
+                            itemTree.DeleteNode(ref item, parcela.Pozicia);
+
+                            parcely.Remove(parcela);
+                            ids.Remove(item.Id);
+                        }
+                        break;
+
+                    case 1:
+                        if (nehnutelnost != null) {
+                            Nehnutelnost neh = nehnutelnosti.Find(n => n.Id == nehnutelnost.Id);
+                            Item item = neh as Item;
+
+                            nehnutelnostTree.DeleteNode(ref nehnutelnost, nehnutelnost.Pozicia);
+                            itemTree.DeleteNode(ref item, nehnutelnost.Pozicia);
+
+                            nehnutelnosti.Remove(nehnutelnost);
+                            ids.Remove(item.Id);
+                        }
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalid item type");
+                        break;
+                }
+            } catch (NullReferenceException) {
+                return;
+            }
+        }
+
+
         public void DeleteItem(int itemType, ref Item item) {
-            switch (itemType) {
-                case 0:
-                    if (item is Parcela p) {
-                        parcelaTree.DeleteNode(ref p, p.Pozicia);
-                        itemTree.DeleteNode(ref item, p.Pozicia);
+            try {
+                switch (itemType) {
+                    case 0:
+                        if (item is Parcela p) {
+                            Console.WriteLine("ITEM IS Parcela");
+                            parcelaTree.DeleteNode(ref p, p.Pozicia);
+                            itemTree.DeleteNode(ref item, p.Pozicia);
 
-                        parcely.Remove(p);
-                        ids.Remove(item.Id);
-                    }
-                    break;
+                            parcely.Remove(p);
+                            ids.Remove(item.Id);
+                        }
+                        break;
 
-                case 1:
-                    if (item is Nehnutelnost n) {
-                        nehnutelnostTree.DeleteNode(ref n, n.Pozicia);
-                        itemTree.DeleteNode(ref item, n.Pozicia);
+                    case 1:
+                        if (item is Nehnutelnost n) {
+                            Console.WriteLine("ITEM IS Nehnutelnost");
+                            nehnutelnostTree.DeleteNode(ref n, n.Pozicia);
+                            itemTree.DeleteNode(ref item, n.Pozicia);
 
-                        nehnutelnosti.Remove(n);
-                        ids.Remove(item.Id);
-                    }
-                    break;
+                            nehnutelnosti.Remove(n);
+                            ids.Remove(item.Id);
+                        }
+                        break;
 
-                default:
-                    Console.WriteLine("Invalid item type");
-                    break;
+                    default:
+                        Console.WriteLine("Invalid item type");
+                        break;
+                }
+            } catch (NullReferenceException) {
+                Console.WriteLine("SHIT HAPPENED");
+                return;
             }
         }
 

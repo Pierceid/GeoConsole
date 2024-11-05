@@ -155,6 +155,7 @@ namespace GeoConsole {
             List<Node<T, U>> duplicateNodes = new List<Node<T, U>>();
             Stack<Node<T, U>> nodesToReinsert = new Stack<Node<T, U>>();
             List<Node<T, U>> visitedNodes = new List<Node<T, U>>();
+
             nodesToReinsert.Push(nodeToDelete);
 
             while (nodesToReinsert.Count > 0) {
@@ -173,9 +174,7 @@ namespace GeoConsole {
                 nodesToReplace.Push(current);
                 visitedNodes.Clear();
 
-                bool isLeaf = (current.LeftSon == null && current.RightSon == null);
-
-                if (!isLeaf) visitedNodes.Add(current);
+                if (current.LeftSon != null || current.RightSon != null) visitedNodes.Add(current);
 
                 while (nodesToReplace.Count > 0) {
                     Node<T, U> cur = nodesToReplace.Pop();
@@ -405,11 +404,11 @@ namespace GeoConsole {
                 current = current.RightSon;
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\nTree Size: " + this.treeSize + "\nData Size: " + this.DataSize);
-            Console.WriteLine("--------------------------------------------------------");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine();
             Console.WriteLine("Tree Size: " + a + "\nData Size: " + c + "\nDuplicates: " + b);
             Console.ResetColor();
+            Console.WriteLine();
         }
 
         public List<Node<T, U>> GetAllNodes() {
