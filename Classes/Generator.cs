@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace GeoConsole {
     public class Generator {
-        private KDTree<Parcela, GPS> parcelaTree = new KDTree<Parcela, GPS>(2);
-        private KDTree<Nehnutelnost, GPS> nehnutelnostTree = new KDTree<Nehnutelnost, GPS>(2);
-        private KDTree<Item, GPS> itemTree = new KDTree<Item, GPS>(2);
+        private KDTree<Parcela, GPS> parcelaTree = new KDTree<Parcela, GPS>(4);
+        private KDTree<Nehnutelnost, GPS> nehnutelnostTree = new KDTree<Nehnutelnost, GPS>(4);
+        private KDTree<Item, GPS> itemTree = new KDTree<Item, GPS>(4);
 
         private Random random = new Random();
 
@@ -21,11 +21,15 @@ namespace GeoConsole {
 
             double x = Math.Round(random.NextDouble() * 100, 1);
             double y = Math.Round(random.NextDouble() * 100, 1);
-            GPS pozicia1 = new GPS(x, y);
+            string sirka = this.random.NextDouble() < 0.5 ? "W" : "E";
+            string dlzka = this.random.NextDouble() < 0.5 ? "N" : "S";
+            GPS pozicia1 = new GPS(sirka, x, dlzka, y);
 
             x = Math.Round(random.NextDouble() * 100, 1);
             y = Math.Round(random.NextDouble() * 100, 1);
-            GPS pozicia2 = new GPS(x, y);
+            sirka = this.random.NextDouble() < 0.5 ? "W" : "E";
+            dlzka = this.random.NextDouble() < 0.5 ? "N" : "S";
+            GPS pozicia2 = new GPS(sirka, x, dlzka, y);
 
             Parcela parcela1, parcela2;
             Nehnutelnost nehnutelnost1, nehnutelnost2;

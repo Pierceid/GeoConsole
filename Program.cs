@@ -24,7 +24,7 @@ namespace GeoConsole {
             Generator generator = new Generator();
 
             int option = -1, type = -1, count = 0, number = 0, index = -1;
-            string description = "";
+            string description = "", sirka = "", dlzka = "";
             double x = 0f, y = 0f;
 
             while (option != 9) {
@@ -33,6 +33,8 @@ namespace GeoConsole {
                 count = 0;
                 number = 0;
                 description = "";
+                sirka = "";
+                dlzka = "";
                 x = 0f;
                 y = 0f;
 
@@ -112,13 +114,17 @@ namespace GeoConsole {
                         int.TryParse(Console.ReadLine(), out number);
                         Console.WriteLine("Enter description:");
                         description = Console.ReadLine();
+                        Console.WriteLine("Enter latitude:");
+                        sirka = Console.ReadLine();
                         Console.WriteLine("Enter position X:");
                         double.TryParse(Console.ReadLine(), out x);
+                        Console.WriteLine("Enter longitude:");
+                        dlzka = Console.ReadLine();
                         Console.WriteLine("Enter position Y:");
                         double.TryParse(Console.ReadLine(), out y);
                         Console.WriteLine();
 
-                        GPS gps = new GPS(x, y);
+                        GPS gps = new GPS(sirka, x, dlzka, y);
                         Item item;
 
                         if (type == 0) {
@@ -139,13 +145,21 @@ namespace GeoConsole {
                             Console.WriteLine();
                         }
 
+                        Console.WriteLine("Enter number:");
+                        int.TryParse(Console.ReadLine(), out number);
+                        Console.WriteLine("Enter description:");
+                        description = Console.ReadLine();
+                        Console.WriteLine("Enter latitude:");
+                        sirka = Console.ReadLine();
                         Console.WriteLine("Enter position X:");
                         double.TryParse(Console.ReadLine(), out x);
+                        Console.WriteLine("Enter longitude:");
+                        dlzka = Console.ReadLine();
                         Console.WriteLine("Enter position Y:");
                         double.TryParse(Console.ReadLine(), out y);
                         Console.WriteLine();
 
-                        _ = generator.FindItem(type, new GPS(x, y));
+                        _ = generator.FindItem(type, new GPS(sirka, x, dlzka, y));
                         break;
 
                     case 7:
@@ -157,13 +171,21 @@ namespace GeoConsole {
                             Console.WriteLine();
                         }
 
-                        Console.Write("Enter position X: ");
+                        Console.WriteLine("Enter number:");
+                        int.TryParse(Console.ReadLine(), out number);
+                        Console.WriteLine("Enter description:");
+                        description = Console.ReadLine();
+                        Console.WriteLine("Enter latitude:");
+                        sirka = Console.ReadLine();
+                        Console.WriteLine("Enter position X:");
                         double.TryParse(Console.ReadLine(), out x);
-                        Console.Write("Enter position Y: ");
+                        Console.WriteLine("Enter longitude:");
+                        dlzka = Console.ReadLine();
+                        Console.WriteLine("Enter position Y:");
                         double.TryParse(Console.ReadLine(), out y);
                         Console.WriteLine();
 
-                        List<Item> result = generator.FindItem(type, new GPS(x, y));
+                        List<Item> result = generator.FindItem(type, new GPS(sirka, x, dlzka, y));
 
                         if (result.Count == 0) return;
 
